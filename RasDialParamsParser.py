@@ -36,24 +36,29 @@ def file_search(filename):
             #             elif i > 0:
             #                 print (f'Preshared-Key{i}:  {ras_decode(hex[5])}')
             
+            # This index is where the bytes for a username are located.
+            index_user = 4
+            # This index is where the bytes for a password are located.
+            index_pass = 5
+            hex = hex_list(str.split(entry,':')[1])
+
             if entry.find('RasDialParams') == 0:
                 # there should be 8 fields delimited with \0x00\0x00\0x00 byte sequence
-                # If we are able to determine the total number of fields and whether they're divisible by 8,
-                # we can figure out how many times to loop through the bytes to pull out creds.
+                # If we are able to determine the total number of fields and whether they're
+                # divisible by 8, we can figure out how many times to loop through the bytes
+                # to pull out creds. If an RadDialParam has less than 8 fields, which has been
+                # obeserved occasionally, fall back to a single-parameter parser.
                 count = null_count(entry)
                 if count % 8 == 0:
                     num_connection = count // 8
                     for i in range(num_connection):
-                        hex = hex_list(str.split(entry,':')[1])
-                        # This index is where the bytes for a username are located.
-                        index_user = 4
-                        # This index is where the bytes for a password are located.
-                        index_pass = 5
                         print (f'Username-{i}:\t {ras_decode(hex[index_user+8*i])}\nPassword-{i}:\t {ras_decode(hex[index_pass+8*i])}')
+                else:
+                    print (f'Username-0:\t {ras_decode(hex[index_user])}\nPassword-0:\t {ras_decode(hex[index_pass])}')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', help='Secretsdump *.secrets file with or other file with RasDialParams values', required=False)
+    parser.add_argument('-f', '--file', help='Secretsdump *.secrets file with or other file with RasDialParams values', required=True)
     args = parser.parse_args()
 
     
